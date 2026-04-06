@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -129,10 +130,16 @@ async function bootstrap(): Promise<void> {
   }
 
   const port = Number(process.env.PORT || 3000);
+  // Heroku (e a maioria dos PaaS) define PORT: é preciso escutar em 0.0.0.0, não só 127.0.0.1.
   const host =
-    process.env.HOST || (isProduction ? '127.0.0.1' : '0.0.0.0');
+    process.env.HOST ||
+    (process.env.PORT !== undefined ? '0.0.0.0' : isProduction ? '127.0.0.1' : '0.0.0.0');
   await app.listen(port, host);
   Logger.log(`API running on http://${host}:${port}`);
 }
 
-void bootstrap();
+void bootstrap().catch((err: unknown) => {
+  const msg = err instanceof Error ? err.stack ?? err.message : String(err);
+  console.error('[bootstrap] Falha ao iniciar:', msg);
+  process.exit(1);
+});

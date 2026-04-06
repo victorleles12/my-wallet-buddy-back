@@ -14,7 +14,13 @@ import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // Merge do @nestjs/config: cada ficheiro faz assign(.env, estadoAnterior) — o *primeiro*
+      // da lista define base; o segundo sobrepõe chaves iguais. Colocar `.env.development`
+      // por último para o Postgres de dev ganhar sobre `.env`.
+      envFilePath: ['.env.development', '.env'],
+    }),
     ThrottlerModule.forRoot([
       {
         ttl: 60_000,

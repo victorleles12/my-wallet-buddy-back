@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -32,6 +33,7 @@ import { GetGroupByIdUseCase } from '../../use-cases/get-group-by-id.use-case';
 import { ListMyGroupsUseCase } from '../../use-cases/list-my-groups.use-case';
 import { RemoveGroupMemberUseCase } from '../../use-cases/remove-group-member.use-case';
 import { UpdateGroupUseCase } from '../../use-cases/update-group.use-case';
+import { PaginationQueryDto } from '@/common/dto/pagination.query.dto';
 
 type JwtUser = { userId: string; email: string };
 type AuthedRequest = Request & { user: JwtUser };
@@ -63,8 +65,15 @@ export class GroupsController {
   @Get()
   @ApiOperation({ summary: 'List groups you belong to' })
   @ApiOkResponse({ type: GroupSummaryResponseDto, isArray: true })
-  list(@Req() req: AuthedRequest): Promise<GroupSummaryResponseDto[]> {
-    return this.listMyGroupsUseCase.execute(req.user.userId);
+  list(
+    @Req() req: AuthedRequest,
+    @Query() query: PaginationQueryDto,
+  ): Promise<GroupSummaryResponseDto[]> {
+    return this.listMyGroupsUseCase.execute(
+      req.user.userId,
+      query.limit,
+      query.offset,
+    );
   }
 
   @Get(':id')

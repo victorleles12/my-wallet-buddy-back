@@ -1,5 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TransactionEntity, TransactionKind } from '@/domain/entities/transaction.entity';
+import {
+  TransactionEntity,
+  TransactionKind,
+} from '@/domain/entities/transaction.entity';
 
 export class TransactionResponseDto {
   @ApiProperty({ format: 'uuid' })

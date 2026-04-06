@@ -26,9 +26,7 @@ export class CreateGoalWithParticipantsUseCase {
     creatorUserId: string,
     dto: CreateGoalWithParticipantsRequestDto,
   ): Promise<GoalResponseDto> {
-    const uniqueIds = [
-      ...new Set([creatorUserId, ...dto.participantUserIds]),
-    ];
+    const uniqueIds = [...new Set([creatorUserId, ...dto.participantUserIds])];
 
     const users = await this.userRepository.find({
       where: { id: In(uniqueIds), enabled: true },

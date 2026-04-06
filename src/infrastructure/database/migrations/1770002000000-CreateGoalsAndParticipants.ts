@@ -6,9 +6,7 @@ import {
   TableIndex,
 } from 'typeorm';
 
-export class CreateGoalsAndParticipants1770002000000
-  implements MigrationInterface
-{
+export class CreateGoalsAndParticipants1770002000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({

@@ -28,10 +28,14 @@ export class UpdateGroupUseCase {
       where: { familyGroupId: groupId, userId: requesterUserId },
     });
     if (!membership || membership.role !== 'owner') {
-      throw new ForbiddenException('Only the group owner can update the group.');
+      throw new ForbiddenException(
+        'Only the group owner can update the group.',
+      );
     }
 
-    const group = await this.groupRepository.findOne({ where: { id: groupId } });
+    const group = await this.groupRepository.findOne({
+      where: { id: groupId },
+    });
     if (!group) {
       throw new NotFoundException('Group not found.');
     }

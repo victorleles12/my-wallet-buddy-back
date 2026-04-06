@@ -28,6 +28,11 @@ export const postgresConfig: DataSourceOptions = {
   ],
   migrations: ['dist/infrastructure/database/migrations/*.js'],
   synchronize: false,
+  logging:
+    process.env.DB_QUERY_LOGGING === 'true'
+      ? ['error', 'warn', 'query']
+      : ['error', 'warn'],
+  maxQueryExecutionTime: Number(process.env.DB_SLOW_QUERY_MS || 200),
 };
 
 const dataSource = new DataSource(postgresConfig);

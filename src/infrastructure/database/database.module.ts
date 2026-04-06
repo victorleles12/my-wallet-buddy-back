@@ -13,25 +13,37 @@ import { UserEntity } from '@/domain/entities/user.entity';
   imports: [
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: Number(configService.get<string>('DB_PORT', '5432')),
-        username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'postgres'),
-        database: configService.get<string>('DB_DATABASE', 'finan_control'),
-        entities: [
-          UserEntity,
-          FamilyGroupEntity,
-          FamilyGroupMemberEntity,
-          TransactionEntity,
-          GoalEntity,
-          GoalParticipantEntity,
-          GoalItemEntity,
-        ],
-        synchronize: false,
-        autoLoadEntities: true,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const slowQueryMs = Number(
+          configService.get<string>('DB_SLOW_QUERY_MS', '200'),
+        );
+        const queryLoggingEnabled =
+          configService.get<string>('DB_QUERY_LOGGING', 'false') === 'true';
+
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: Number(configService.get<string>('DB_PORT', '5432')),
+          username: configService.get<string>('DB_USERNAME', 'postgres'),
+          password: configService.get<string>('DB_PASSWORD', 'postgres'),
+          database: configService.get<string>('DB_DATABASE', 'finan_control'),
+          entities: [
+            UserEntity,
+            FamilyGroupEntity,
+            FamilyGroupMemberEntity,
+            TransactionEntity,
+            GoalEntity,
+            GoalParticipantEntity,
+            GoalItemEntity,
+          ],
+          synchronize: false,
+          autoLoadEntities: true,
+          logging: queryLoggingEnabled
+            ? ['error', 'warn', 'query']
+            : ['error', 'warn'],
+          maxQueryExecutionTime: slowQueryMs,
+        };
+      },
     }),
   ],
 })

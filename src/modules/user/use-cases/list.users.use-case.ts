@@ -11,9 +11,11 @@ export class ListUsersUseCase {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  async execute(): Promise<UserResponseDto[]> {
+  async execute(limit = 50, offset = 0): Promise<UserResponseDto[]> {
     const users = await this.userRepository.find({
       order: { createdAt: 'DESC' },
+      take: limit,
+      skip: offset,
     });
     return users.map((u) => UserResponseDto.fromEntity(u));
   }

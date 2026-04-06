@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -23,6 +24,7 @@ import type { Request } from 'express';
 import { CreateTransactionRequestDto } from '../dto/create-transaction.request.dto';
 import { TransactionResponseDto } from '../dto/transaction.response.dto';
 import { UpdateTransactionRequestDto } from '../dto/update-transaction.request.dto';
+import { PaginationQueryDto } from '@/common/dto/pagination.query.dto';
 import { CreateTransactionUseCase } from '../../use-cases/create-transaction.use-case';
 import { DeleteTransactionUseCase } from '../../use-cases/delete-transaction.use-case';
 import { GetTransactionByIdUseCase } from '../../use-cases/get-transaction-by-id.use-case';
@@ -63,8 +65,15 @@ export class TransactionsController {
       'List transactions visible to you (personal: yours only; group: all from groups you belong to)',
   })
   @ApiOkResponse({ type: TransactionResponseDto, isArray: true })
-  list(@Req() req: AuthedRequest): Promise<TransactionResponseDto[]> {
-    return this.listTransactionsForUserUseCase.execute(req.user.userId);
+  list(
+    @Req() req: AuthedRequest,
+    @Query() query: PaginationQueryDto,
+  ): Promise<TransactionResponseDto[]> {
+    return this.listTransactionsForUserUseCase.execute(
+      req.user.userId,
+      query.limit,
+      query.offset,
+    );
   }
 
   @Get(':id')

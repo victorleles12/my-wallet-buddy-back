@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -37,6 +38,7 @@ import { ListGoalsForUserUseCase } from '../../use-cases/list-goals-for-user.use
 import { UpdateGoalItemUseCase } from '../../use-cases/update-goal-item.use-case';
 import { UpdateGoalUseCase } from '../../use-cases/update-goal.use-case';
 import { UpdateMyContributionUseCase } from '../../use-cases/update-my-contribution.use-case';
+import { PaginationQueryDto } from '@/common/dto/pagination.query.dto';
 
 type JwtUser = { userId: string; email: string };
 type AuthedRequest = Request & { user: JwtUser };
@@ -68,14 +70,26 @@ export class GoalsController {
     @Req() req: AuthedRequest,
     @Body() body: CreateGoalWithParticipantsRequestDto,
   ): Promise<GoalResponseDto> {
-    return this.createGoalWithParticipantsUseCase.execute(req.user.userId, body);
+    return this.createGoalWithParticipantsUseCase.execute(
+      req.user.userId,
+      body,
+    );
   }
 
   @Get()
-  @ApiOperation({ summary: 'List goals where the current user is a participant' })
+  @ApiOperation({
+    summary: 'List goals where the current user is a participant',
+  })
   @ApiOkResponse({ type: GoalResponseDto, isArray: true })
-  list(@Req() req: AuthedRequest): Promise<GoalResponseDto[]> {
-    return this.listGoalsForUserUseCase.execute(req.user.userId);
+  list(
+    @Req() req: AuthedRequest,
+    @Query() query: PaginationQueryDto,
+  ): Promise<GoalResponseDto[]> {
+    return this.listGoalsForUserUseCase.execute(
+      req.user.userId,
+      query.limit,
+      query.offset,
+    );
   }
 
   @Get(':id')
@@ -90,7 +104,8 @@ export class GoalsController {
 
   @Post(':id/participants')
   @ApiOperation({
-    summary: 'Add users to an existing goal (requester must already be a participant)',
+    summary:
+      'Add users to an existing goal (requester must already be a participant)',
   })
   @ApiOkResponse({ type: GoalResponseDto })
   addParticipants(
@@ -98,11 +113,7 @@ export class GoalsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: AddGoalParticipantsRequestDto,
   ): Promise<GoalResponseDto> {
-    return this.addGoalParticipantsUseCase.execute(
-      id,
-      req.user.userId,
-      body,
-    );
+    return this.addGoalParticipantsUseCase.execute(id, req.user.userId, body);
   }
 
   @Post(':id/items')
@@ -169,11 +180,7 @@ export class GoalsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateMyContributionRequestDto,
   ): Promise<GoalResponseDto> {
-    return this.updateMyContributionUseCase.execute(
-      id,
-      req.user.userId,
-      body,
-    );
+    return this.updateMyContributionUseCase.execute(id, req.user.userId, body);
   }
 
   @Delete(':id')

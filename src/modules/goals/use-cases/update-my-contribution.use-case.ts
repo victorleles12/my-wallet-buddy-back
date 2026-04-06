@@ -29,9 +29,7 @@ export class UpdateMyContributionUseCase {
     });
 
     if (!row) {
-      throw new ForbiddenException(
-        'You are not a participant of this goal.',
-      );
+      throw new ForbiddenException('You are not a participant of this goal.');
     }
 
     row.currentAmount = dto.currentAmount.toFixed(2);

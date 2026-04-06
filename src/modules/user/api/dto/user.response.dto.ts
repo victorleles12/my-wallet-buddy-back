@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserEntity } from '@/domain/entities/user.entity';
+import { UserEntity, UserRole } from '@/domain/entities/user.entity';
 
 export class UserResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -29,6 +29,9 @@ export class UserResponseDto {
   @ApiProperty()
   enabled: boolean;
 
+  @ApiProperty({ enum: ['admin', 'user'] })
+  role: UserRole;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -46,6 +49,7 @@ export class UserResponseDto {
       email: entity.email,
       phone: entity.phone,
       enabled: entity.enabled,
+      role: entity.role,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

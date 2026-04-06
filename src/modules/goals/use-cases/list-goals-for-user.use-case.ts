@@ -11,7 +11,11 @@ export class ListGoalsForUserUseCase {
     private readonly goalRepository: Repository<GoalEntity>,
   ) {}
 
-  async execute(userId: string): Promise<GoalResponseDto[]> {
+  async execute(
+    userId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<GoalResponseDto[]> {
     const goals = await this.goalRepository
       .createQueryBuilder('goal')
       .innerJoinAndSelect('goal.participants', 'p')
@@ -19,7 +23,9 @@ export class ListGoalsForUserUseCase {
       .leftJoinAndSelect('goal.items', 'items')
       .where('p.user_id = :userId', { userId })
       .orderBy('goal.deadline', 'ASC')
-      .addOrderBy('goal.created_at', 'DESC')
+      .addOrderBy('goal.createdAt', 'DESC')
+      .take(limit)
+      .skip(offset)
       .getMany();
 
     return goals.map((g) => GoalResponseDto.fromEntity(g));

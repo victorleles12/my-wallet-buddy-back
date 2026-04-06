@@ -14,10 +14,7 @@ export class DeleteTransactionUseCase {
     private readonly transactionRepository: Repository<TransactionEntity>,
   ) {}
 
-  async execute(
-    transactionId: string,
-    requesterUserId: string,
-  ): Promise<void> {
+  async execute(transactionId: string, requesterUserId: string): Promise<void> {
     const row = await this.transactionRepository.findOne({
       where: { id: transactionId },
     });
@@ -25,7 +22,9 @@ export class DeleteTransactionUseCase {
       throw new NotFoundException('Transaction not found.');
     }
     if (row.userId !== requesterUserId) {
-      throw new ForbiddenException('Only the user who created this transaction can delete it.');
+      throw new ForbiddenException(
+        'Only the user who created this transaction can delete it.',
+      );
     }
     await this.transactionRepository.remove(row);
   }

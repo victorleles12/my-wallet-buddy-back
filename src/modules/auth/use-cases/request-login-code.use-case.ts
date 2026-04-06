@@ -1,4 +1,10 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
@@ -34,7 +40,19 @@ export class RequestLoginCodeUseCase {
       throw invalid;
     }
 
-    const code = this.twoFactorCodeStore.generateAndStore(user.email);
+    const lockRemainingMs = this.twoFactorCodeStore.getLockRemainingMs(
+      user.email,
+      user.id,
+    );
+    if (lockRemainingMs > 0) {
+      const retryAfterSeconds = Math.ceil(lockRemainingMs / 1000);
+      throw new HttpException(
+        `Too many invalid code attempts. Try again in ${retryAfterSeconds} seconds.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const code = this.twoFactorCodeStore.generateAndStore(user.email, user.id);
     this.logger.warn(
       `[2FA / DEV] Login code for ${user.email}: ${code} (expires in 5 minutes)`,
     );

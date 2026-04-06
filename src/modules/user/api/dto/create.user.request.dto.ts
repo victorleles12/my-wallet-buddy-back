@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  Matches,
   MinLength,
 } from 'class-validator';
 
@@ -55,6 +56,10 @@ export class CreateUserRequestDto {
   @IsString()
   @MinLength(8)
   @MaxLength(128)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/, {
+    message:
+      'Password must include uppercase, lowercase, number and special character.',
+  })
   password: string;
 
   @ApiPropertyOptional({ example: true, default: true })

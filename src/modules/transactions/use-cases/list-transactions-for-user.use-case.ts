@@ -14,7 +14,11 @@ export class ListTransactionsForUserUseCase {
     private readonly familyMemberRepository: Repository<FamilyGroupMemberEntity>,
   ) {}
 
-  async execute(userId: string): Promise<TransactionResponseDto[]> {
+  async execute(
+    userId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<TransactionResponseDto[]> {
     const memberships = await this.familyMemberRepository.find({
       where: { userId },
       select: ['familyGroupId'],
@@ -27,13 +31,13 @@ export class ListTransactionsForUserUseCase {
       .where('t.user_id = :uid AND t.is_family = false', { uid: userId });
 
     if (groupIds.length > 0) {
-      qb.orWhere(
-        't.is_family = true AND t.family_group_id IN (:...gids)',
-        { gids: groupIds },
-      );
+      qb.orWhere('t.is_family = true AND t.family_group_id IN (:...gids)', {
+        gids: groupIds,
+      });
     }
 
-    qb.orderBy('t.occurred_on', 'DESC').addOrderBy('t.created_at', 'DESC');
+    qb.orderBy('t.occurredOn', 'DESC').addOrderBy('t.createdAt', 'DESC');
+    qb.take(limit).skip(offset);
 
     const rows = await qb.getMany();
     return rows.map((r) => TransactionResponseDto.fromEntity(r));

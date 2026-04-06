@@ -95,10 +95,7 @@ export class GoalResponseDto {
     dto.createdByUserId = goal.createdByUserId;
     dto.createdAt = goal.createdAt.toISOString();
     const parts = goal.participants ?? [];
-    dto.totalSaved = parts.reduce(
-      (s, p) => s + Number(p.currentAmount),
-      0,
-    );
+    dto.totalSaved = parts.reduce((s, p) => s + Number(p.currentAmount), 0);
     dto.participants = parts.map((p) =>
       GoalParticipantResponseDto.fromParticipant(p),
     );

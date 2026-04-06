@@ -9,6 +9,10 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '@/domain/entities/user.entity';
 import { CreateUserRequestDto } from '../api/dto/create.user.request.dto';
 import { UserResponseDto } from '../api/dto/user.response.dto';
+import {
+  normalizeDocument,
+  normalizeEmail,
+} from '../utils/normalize-user-fields.util';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -18,9 +22,14 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(dto: CreateUserRequestDto): Promise<UserResponseDto> {
-    const existing = await this.userRepository.findOne({
-      where: [{ email: dto.email }, { document: dto.document }],
-    });
+    const email = normalizeEmail(dto.email);
+    const document = normalizeDocument(dto.document);
+
+    const existing = await this.userRepository
+      .createQueryBuilder('u')
+      .where('LOWER(TRIM(u.email)) = :email', { email })
+      .orWhere('TRIM(u.document) = :document', { document })
+      .getOne();
     if (existing) {
       throw new ConflictException('Email or document is already registered.');
     }
@@ -30,10 +39,10 @@ export class CreateUserUseCase {
     const user = this.userRepository.create({
       firstName: dto.firstName,
       lastName: dto.lastName,
-      document: dto.document,
+      document,
       address: dto.address,
       sex: dto.sex,
-      email: dto.email,
+      email,
       phone: dto.phone,
       passwordHash,
       enabled: dto.enabled ?? true,

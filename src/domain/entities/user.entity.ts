@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export type UserRole = 'admin' | 'user';
+
 @Entity('users')
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -37,6 +39,12 @@ export class UserEntity {
 
   @Column({ type: 'boolean', default: true })
   enabled: boolean;
+
+  @Column({ type: 'varchar', length: 20, default: 'user' })
+  role: UserRole;
+
+  @Column({ name: 'token_version', type: 'int', default: 0 })
+  tokenVersion: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

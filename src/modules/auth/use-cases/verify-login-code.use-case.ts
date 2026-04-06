@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -28,8 +33,18 @@ export class VerifyLoginCodeUseCase {
       throw new UnauthorizedException('Invalid or expired code.');
     }
 
-    const ok = this.twoFactorCodeStore.verifyAndConsume(user.email, dto.code);
-    if (!ok) {
+    const verification = this.twoFactorCodeStore.verifyAndConsume(
+      user.email,
+      user.id,
+      dto.code,
+    );
+    if (verification === 'locked') {
+      throw new HttpException(
+        'Too many invalid code attempts. Request a new code and try again later.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    if (verification !== 'ok') {
       throw new UnauthorizedException('Invalid or expired code.');
     }
 
@@ -41,6 +56,7 @@ export class VerifyLoginCodeUseCase {
         sub: user.id,
         email: user.email,
         type: 'user',
+        tv: user.tokenVersion,
       },
       { expiresIn: expiresInSec },
     );

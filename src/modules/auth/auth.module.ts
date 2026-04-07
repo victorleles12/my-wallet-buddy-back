@@ -8,6 +8,7 @@ import { AuthController } from './api/controller/auth.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { TwoFactorCodeStore } from './services/two-factor-code.store';
+import { LoginWithGoogleUseCase } from './use-cases/login-with-google.use-case';
 import { RequestLoginCodeUseCase } from './use-cases/request-login-code.use-case';
 import { VerifyLoginCodeUseCase } from './use-cases/verify-login-code.use-case';
 import { jwtExpiryToSeconds } from './utils/jwt-expiry.util';
@@ -43,6 +44,7 @@ import { jwtExpiryToSeconds } from './utils/jwt-expiry.util';
     TwoFactorCodeStore,
     RequestLoginCodeUseCase,
     VerifyLoginCodeUseCase,
+    LoginWithGoogleUseCase,
     JwtStrategy,
     JwtAuthGuard,
   ],

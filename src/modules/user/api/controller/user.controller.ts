@@ -26,12 +26,17 @@ import type { Request } from 'express';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { UserRole } from '@/domain/entities/user.entity';
 import { CreateUserRequestDto } from '../dto/create.user.request.dto';
+import { GrantAdAccessRequestDto } from '../dto/grant-ad-access.request.dto';
 import { UpdateUserStatusRequestDto } from '../dto/update-user-status.request.dto';
 import { UpdateUserRequestDto } from '../dto/update.user.request.dto';
+import { UserAccessResponseDto } from '../dto/user-access.response.dto';
 import { UserResponseDto } from '../dto/user.response.dto';
+import { ActivatePremiumUseCase } from '../../use-cases/activate-premium.use-case';
 import { CreateUserUseCase } from '../../use-cases/create.user.use-case';
 import { DeleteUserUseCase } from '../../use-cases/delete.user.use-case';
+import { GetMyAccessUseCase } from '../../use-cases/get-my-access.use-case';
 import { GetUserByIdUseCase } from '../../use-cases/get.user.by.id.use-case';
+import { GrantAdAccessUseCase } from '../../use-cases/grant-ad-access.use-case';
 import { ListUsersUseCase } from '../../use-cases/list.users.use-case';
 import { UpdateUserStatusUseCase } from '../../use-cases/update-user-status.use-case';
 import { UpdateUserUseCase } from '../../use-cases/update.user.use-case';
@@ -51,6 +56,9 @@ export class UserController {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly updateUserStatusUseCase: UpdateUserStatusUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
+    private readonly getMyAccessUseCase: GetMyAccessUseCase,
+    private readonly grantAdAccessUseCase: GrantAdAccessUseCase,
+    private readonly activatePremiumUseCase: ActivatePremiumUseCase,
   ) {}
 
   @Public()
@@ -80,6 +88,30 @@ export class UserController {
       req.user.userId,
     );
     return [me];
+  }
+
+  @Get('me/access')
+  @ApiOperation({ summary: 'Get premium/paywall access status for current user' })
+  @ApiOkResponse({ type: UserAccessResponseDto })
+  getMyAccess(@Req() req: AuthedRequest): Promise<UserAccessResponseDto> {
+    return this.getMyAccessUseCase.execute(req.user.userId);
+  }
+
+  @Post('me/access/ad-reward')
+  @ApiOperation({ summary: 'Grant temporary access after rewarded ad' })
+  @ApiOkResponse({ type: UserAccessResponseDto })
+  grantAdAccess(
+    @Req() req: AuthedRequest,
+    @Body() body: GrantAdAccessRequestDto,
+  ): Promise<UserAccessResponseDto> {
+    return this.grantAdAccessUseCase.execute(req.user.userId, body.hours ?? 24);
+  }
+
+  @Patch('me/access/premium')
+  @ApiOperation({ summary: 'Activate premium for current user' })
+  @ApiOkResponse({ type: UserAccessResponseDto })
+  activatePremium(@Req() req: AuthedRequest): Promise<UserAccessResponseDto> {
+    return this.activatePremiumUseCase.execute(req.user.userId);
   }
 
   @Get(':id')

@@ -46,6 +46,15 @@ export class UserEntity {
   @Column({ name: 'token_version', type: 'int', default: 0 })
   tokenVersion: number;
 
+  @Column({ name: 'is_premium', type: 'boolean', default: false })
+  isPremium: boolean;
+
+  @Column({ name: 'premium_since', type: 'timestamptz', nullable: true })
+  premiumSince: Date | null;
+
+  @Column({ name: 'ad_unlock_until', type: 'timestamptz', nullable: true })
+  adUnlockUntil: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

@@ -12,6 +12,7 @@ import { LoginWithGoogleUseCase } from './use-cases/login-with-google.use-case';
 import { RequestLoginCodeUseCase } from './use-cases/request-login-code.use-case';
 import { VerifyLoginCodeUseCase } from './use-cases/verify-login-code.use-case';
 import { jwtExpiryToSeconds } from './utils/jwt-expiry.util';
+import { MailService } from '@/infrastructure/email/mail.service';
 
 @Global()
 @Module({
@@ -41,6 +42,7 @@ import { jwtExpiryToSeconds } from './utils/jwt-expiry.util';
   ],
   controllers: [AuthController],
   providers: [
+    MailService,
     TwoFactorCodeStore,
     RequestLoginCodeUseCase,
     VerifyLoginCodeUseCase,

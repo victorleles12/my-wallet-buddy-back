@@ -25,7 +25,7 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({
     summary:
-      'Step 1: validate email/password and issue a 6-digit code (logged in server terminal, dev)',
+      'Passo 1: valida e-mail/senha e envia código de 6 dígitos por e-mail (Mailgun ou SMTP). Sem isso, o código vai para o log do servidor.',
   })
   @ApiOkResponse({ type: RequestLoginCodeResponseDto })
   requestCode(

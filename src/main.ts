@@ -95,6 +95,7 @@ async function bootstrap(): Promise<void> {
       .addTag('groups')
       .addTag('transactions')
       .addTag('goals')
+      .addTag('credit-cards')
       .addBearerAuth(
         {
           type: 'http',

@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { GroupsModule } from './modules/groups/groups.module';
 import { GoalsModule } from './modules/goals/goals.module';
+import { CreditCardsModule } from './modules/credit-cards/credit-cards.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { HealthModule } from './modules/health/health.module';
 import { UserModule } from './modules/user/user.module';
@@ -33,6 +34,7 @@ import { UserModule } from './modules/user/user.module';
     UserModule,
     GroupsModule,
     TransactionsModule,
+    CreditCardsModule,
     GoalsModule,
   ],
   providers: [

@@ -25,6 +25,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "npm run build && ts-node ./node_modules/typeorm/cli.js -d ./src/infrastructure/database/config/postgres.provider.ts",
     "migration:run": "npm run typeorm migration:run",
+    "migration:run:prod": "node ./node_modules/typeorm/cli.js migration:run -d ./dist/infrastructure/database/config/postgres.provider.js",
     "migration:revert": "npm run typeorm migration:revert",
     "migration:show": "npm run typeorm migration:show"
   },

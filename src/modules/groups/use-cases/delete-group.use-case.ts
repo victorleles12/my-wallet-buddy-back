@@ -42,6 +42,8 @@ export class DeleteGroupUseCase {
       { isFamily: false, familyGroupId: null },
     );
 
+    /** Garantir ordem explícita (alguns ambientes TypeORM/Postgres falham só com remove no pai). */
+    await this.memberRepository.delete({ familyGroupId: groupId });
     await this.groupRepository.remove(group);
   }
 }

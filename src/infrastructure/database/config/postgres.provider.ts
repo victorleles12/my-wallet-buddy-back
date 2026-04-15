@@ -14,6 +14,8 @@ import { TransactionEntity } from '../../../domain/entities/transaction.entity';
 import { UserEntity } from '../../../domain/entities/user.entity';
 import { CreditCardEntity } from '../../../domain/entities/credit-card.entity';
 import { CreditCardPurchaseEntity } from '../../../domain/entities/credit-card-purchase.entity';
+import { MonthlyBillEntity } from '../../../domain/entities/monthly-bill.entity';
+import { MonthlyBillMonthStateEntity } from '../../../domain/entities/monthly-bill-month-state.entity';
 
 dotenv.config({ path: '.env' });
 dotenv.config({ path: '.env.development', override: true });
@@ -59,6 +61,8 @@ export const postgresConfig: DataSourceOptions = {
     GoalItemEntity,
     CreditCardEntity,
     CreditCardPurchaseEntity,
+    MonthlyBillEntity,
+    MonthlyBillMonthStateEntity,
   ],
   migrations: ['dist/infrastructure/database/migrations/*.js'],
   synchronize: false,

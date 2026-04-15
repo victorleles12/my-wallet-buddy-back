@@ -20,16 +20,25 @@ interface PendingCode {
 
 export type TwoFactorVerifyStatus = 'ok' | 'invalid' | 'locked';
 
+/** Propósitos separados para não sobrescrever o código de login. */
+export const TWO_FA_PURPOSE_LOGIN = 'login';
+export const TWO_FA_PURPOSE_DELETE_ACCOUNT = 'delete_account';
+export const TWO_FA_PURPOSE_CLEAR_FINANCIAL_DATA = 'clear_financial_data';
+
 @Injectable()
 export class TwoFactorCodeStore {
   private readonly store = new Map<string, PendingCode>();
 
-  generateAndStore(email: string, userId: string): string {
+  generateAndStore(
+    email: string,
+    userId: string,
+    purpose: string = TWO_FA_PURPOSE_LOGIN,
+  ): string {
     const code = String(randomInt(0, 10 ** CODE_LENGTH)).padStart(
       CODE_LENGTH,
       '0',
     );
-    const key = this.keyFor(email, userId);
+    const key = this.keyFor(purpose, email, userId);
     this.store.set(key, {
       code,
       expiresAt: Date.now() + CODE_TTL_MS,
@@ -39,8 +48,12 @@ export class TwoFactorCodeStore {
     return code;
   }
 
-  getLockRemainingMs(email: string, userId: string): number {
-    const key = this.keyFor(email, userId);
+  getLockRemainingMs(
+    email: string,
+    userId: string,
+    purpose: string = TWO_FA_PURPOSE_LOGIN,
+  ): number {
+    const key = this.keyFor(purpose, email, userId);
     const entry = this.store.get(key);
     if (!entry || !entry.lockedUntil) {
       return 0;
@@ -59,8 +72,9 @@ export class TwoFactorCodeStore {
     email: string,
     userId: string,
     inputCode: string,
+    purpose: string = TWO_FA_PURPOSE_LOGIN,
   ): TwoFactorVerifyStatus {
-    const key = this.keyFor(email, userId);
+    const key = this.keyFor(purpose, email, userId);
     const entry = this.store.get(key);
     if (!entry || Date.now() > entry.expiresAt) {
       this.store.delete(key);
@@ -91,7 +105,7 @@ export class TwoFactorCodeStore {
     return entry.lockedUntil ? 'locked' : 'invalid';
   }
 
-  private keyFor(email: string, userId: string): string {
-    return `${email.trim().toLowerCase()}::${userId}`;
+  private keyFor(purpose: string, email: string, userId: string): string {
+    return `${purpose}::${email.trim().toLowerCase()}::${userId}`;
   }
 }

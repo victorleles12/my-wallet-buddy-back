@@ -43,6 +43,40 @@ function buildLoginCodePayload(code: string): { subject: string; text: string; h
   return { subject, text, html };
 }
 
+export type SensitiveEmailAction = 'delete_account' | 'clear_financial_data';
+
+function buildSensitiveActionPayload(
+  action: SensitiveEmailAction,
+  code: string,
+): { subject: string; text: string; html: string } {
+  const label =
+    action === 'delete_account'
+      ? 'confirmar exclusão da sua conta'
+      : 'confirmar limpeza dos seus dados financeiros na conta';
+  const subject =
+    action === 'delete_account'
+      ? 'Código para excluir conta — My Wallet Buddy'
+      : 'Código para limpar dados financeiros — My Wallet Buddy';
+  const text = [
+    `Use este código para ${label}:`,
+    '',
+    code,
+    '',
+    `Válido por ${LOGIN_CODE_TTL_MINUTES} minutos.`,
+    '',
+    'Se você não solicitou esta ação, ignore este e-mail e altere a sua palavra-passe.',
+  ].join('\n');
+
+  const html = `
+      <p>Use este código para <strong>${label}</strong>:</p>
+      <p style="font-size:26px;font-weight:700;letter-spacing:6px;margin:16px 0">${code}</p>
+      <p>Válido por <strong>${LOGIN_CODE_TTL_MINUTES} minutos</strong>.</p>
+      <p style="color:#666;font-size:13px">Se você não solicitou esta ação, ignore este e-mail.</p>
+    `.trim();
+
+  return { subject, text, html };
+}
+
 /** Extrai mensagem útil do erro retornado pelo mailgun.js / axios. */
 function formatMailgunSendError(err: unknown): string {
   if (err == null) return 'Erro desconhecido ao chamar Mailgun.';
@@ -212,6 +246,48 @@ export class MailService {
 
   async sendLoginCode(to: string, code: string): Promise<void> {
     const { subject, text, html } = buildLoginCodePayload(code);
+
+    if (this.mode === 'mailgun' && this.mailgunClient && this.mailgunDomain) {
+      try {
+        await this.mailgunClient.messages.create(this.mailgunDomain, {
+          from: this.mailgunFrom!,
+          to: [to],
+          subject,
+          text,
+          html,
+        });
+      } catch (err: unknown) {
+        throw new Error(formatMailgunSendError(err));
+      }
+      return;
+    }
+
+    if (this.mode === 'smtp' && this.transporter) {
+      const fromRaw =
+        this.config.get<string>('MAIL_FROM')?.trim() ||
+        (this.config.get<string>('SMTP_USER')?.trim()
+          ? `FinanControl <${this.config.get<string>('SMTP_USER')!.trim()}>`
+          : 'FinanControl <noreply@localhost>');
+
+      await this.transporter.sendMail({
+        from: fromRaw,
+        to,
+        subject,
+        text,
+        html,
+      });
+      return;
+    }
+
+    throw new Error('No email delivery configured');
+  }
+
+  async sendSensitiveActionCode(
+    to: string,
+    code: string,
+    action: SensitiveEmailAction,
+  ): Promise<void> {
+    const { subject, text, html } = buildSensitiveActionPayload(action, code);
 
     if (this.mode === 'mailgun' && this.mailgunClient && this.mailgunDomain) {
       try {

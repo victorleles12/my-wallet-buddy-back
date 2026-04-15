@@ -41,6 +41,11 @@ import { ListUsersUseCase } from '../../use-cases/list.users.use-case';
 import { UpdateUserStatusUseCase } from '../../use-cases/update-user-status.use-case';
 import { UpdateUserUseCase } from '../../use-cases/update.user.use-case';
 import { PaginationQueryDto } from '@/common/dto/pagination.query.dto';
+import { ConfirmSensitiveActionDto } from '../dto/confirm-sensitive-action.dto';
+import { MessageResponseDto } from '../dto/message.response.dto';
+import { RequestSensitiveActionCodeDto } from '../dto/request-sensitive-action-code.dto';
+import { ConfirmSensitiveActionUseCase } from '../../use-cases/confirm-sensitive-action.use-case';
+import { RequestSensitiveActionCodeUseCase } from '../../use-cases/request-sensitive-action-code.use-case';
 
 type JwtUser = { userId: string; email: string; role: UserRole };
 type AuthedRequest = Request & { user: JwtUser };
@@ -59,6 +64,8 @@ export class UserController {
     private readonly getMyAccessUseCase: GetMyAccessUseCase,
     private readonly grantAdAccessUseCase: GrantAdAccessUseCase,
     private readonly activatePremiumUseCase: ActivatePremiumUseCase,
+    private readonly requestSensitiveActionCodeUseCase: RequestSensitiveActionCodeUseCase,
+    private readonly confirmSensitiveActionUseCase: ConfirmSensitiveActionUseCase,
   ) {}
 
   @Public()
@@ -112,6 +119,43 @@ export class UserController {
   @ApiOkResponse({ type: UserAccessResponseDto })
   activatePremium(@Req() req: AuthedRequest): Promise<UserAccessResponseDto> {
     return this.activatePremiumUseCase.execute(req.user.userId);
+  }
+
+  @Post('me/sensitive-action/request-code')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({
+    summary:
+      'Request 6-digit email code to confirm account deletion or financial data wipe',
+  })
+  @ApiOkResponse({ type: MessageResponseDto })
+  requestSensitiveActionCode(
+    @Req() req: AuthedRequest,
+    @Body() body: RequestSensitiveActionCodeDto,
+  ): Promise<MessageResponseDto> {
+    return this.requestSensitiveActionCodeUseCase.execute(
+      req.user.userId,
+      body.action,
+      body.password,
+    );
+  }
+
+  @Post('me/sensitive-action/confirm')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({
+    summary:
+      'Confirm account deletion or financial data wipe with email code',
+  })
+  @ApiNoContentResponse()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async confirmSensitiveAction(
+    @Req() req: AuthedRequest,
+    @Body() body: ConfirmSensitiveActionDto,
+  ): Promise<void> {
+    await this.confirmSensitiveActionUseCase.execute(
+      req.user.userId,
+      body.action,
+      body.code,
+    );
   }
 
   @Get(':id')

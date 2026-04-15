@@ -8,7 +8,10 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '@/domain/entities/user.entity';
-import { TwoFactorCodeStore } from '../services/two-factor-code.store';
+import {
+  TWO_FA_PURPOSE_LOGIN,
+  TwoFactorCodeStore,
+} from '../services/two-factor-code.store';
 import { VerifyLoginCodeDto } from '../api/dto/verify-login-code.dto';
 import { AuthTokenResponseDto } from '../api/dto/auth-token.response.dto';
 import { jwtExpiryToSeconds } from '../utils/jwt-expiry.util';
@@ -37,6 +40,7 @@ export class VerifyLoginCodeUseCase {
       user.email,
       user.id,
       dto.code,
+      TWO_FA_PURPOSE_LOGIN,
     );
     if (verification === 'locked') {
       throw new HttpException(

@@ -12,7 +12,10 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '@/domain/entities/user.entity';
 import { MailService } from '@/infrastructure/email/mail.service';
 import { RequestLoginCodeDto } from '../api/dto/request-login-code.dto';
-import { TwoFactorCodeStore } from '../services/two-factor-code.store';
+import {
+  TWO_FA_PURPOSE_LOGIN,
+  TwoFactorCodeStore,
+} from '../services/two-factor-code.store';
 
 @Injectable()
 export class RequestLoginCodeUseCase {
@@ -46,6 +49,7 @@ export class RequestLoginCodeUseCase {
     const lockRemainingMs = this.twoFactorCodeStore.getLockRemainingMs(
       user.email,
       user.id,
+      TWO_FA_PURPOSE_LOGIN,
     );
     if (lockRemainingMs > 0) {
       const retryAfterSeconds = Math.ceil(lockRemainingMs / 1000);
@@ -55,7 +59,11 @@ export class RequestLoginCodeUseCase {
       );
     }
 
-    const code = this.twoFactorCodeStore.generateAndStore(user.email, user.id);
+    const code = this.twoFactorCodeStore.generateAndStore(
+      user.email,
+      user.id,
+      TWO_FA_PURPOSE_LOGIN,
+    );
 
     if (this.mailService.canSendEmail()) {
       try {

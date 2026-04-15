@@ -50,6 +50,12 @@ import { MailService } from '@/infrastructure/email/mail.service';
     JwtStrategy,
     JwtAuthGuard,
   ],
-  exports: [JwtAuthGuard, JwtModule, PassportModule],
+  exports: [
+    JwtAuthGuard,
+    JwtModule,
+    PassportModule,
+    MailService,
+    TwoFactorCodeStore,
+  ],
 })
 export class AuthModule {}

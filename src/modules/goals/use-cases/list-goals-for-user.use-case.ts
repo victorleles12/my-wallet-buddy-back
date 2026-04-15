@@ -6,6 +6,12 @@ import { GoalResponseDto } from '../api/dto/goal.response.dto';
 
 @Injectable()
 export class ListGoalsForUserUseCase {
+  private readonly listCache = new Map<
+    string,
+    { value: GoalResponseDto[]; expiresAt: number }
+  >();
+  private readonly cacheTtlMs = 10_000;
+
   constructor(
     @InjectRepository(GoalEntity)
     private readonly goalRepository: Repository<GoalEntity>,
@@ -16,18 +22,32 @@ export class ListGoalsForUserUseCase {
     limit = 50,
     offset = 0,
   ): Promise<GoalResponseDto[]> {
+    const cacheKey = `${userId}:${limit}:${offset}`;
+    const cached = this.listCache.get(cacheKey);
+    const now = Date.now();
+    if (cached && cached.expiresAt > now) {
+      return cached.value;
+    }
+
     const goals = await this.goalRepository
       .createQueryBuilder('goal')
-      .innerJoinAndSelect('goal.participants', 'p')
-      .innerJoinAndSelect('p.user', 'user')
-      .leftJoinAndSelect('goal.items', 'items')
-      .where('p.user_id = :userId', { userId })
+      .innerJoin('goal.participants', 'filterParticipant')
+      .leftJoinAndSelect('goal.participants', 'participants')
+      .where('filterParticipant.user_id = :userId', { userId })
       .orderBy('goal.deadline', 'ASC')
       .addOrderBy('goal.createdAt', 'DESC')
+      .distinct(true)
       .take(limit)
       .skip(offset)
       .getMany();
 
-    return goals.map((g) => GoalResponseDto.fromEntity(g));
+    const value = goals.map((g) =>
+      GoalResponseDto.fromEntity(g, {
+        includeItems: false,
+        includeParticipantProfiles: false,
+      }),
+    );
+    this.listCache.set(cacheKey, { value, expiresAt: now + this.cacheTtlMs });
+    return value;
   }
 }

@@ -85,7 +85,12 @@ export class GoalResponseDto {
   })
   items: GoalItemResponseDto[];
 
-  static fromEntity(goal: GoalEntity): GoalResponseDto {
+  static fromEntity(
+    goal: GoalEntity,
+    options?: { includeItems?: boolean; includeParticipantProfiles?: boolean },
+  ): GoalResponseDto {
+    const includeItems = options?.includeItems ?? true;
+    const includeParticipantProfiles = options?.includeParticipantProfiles ?? true;
     const dto = new GoalResponseDto();
     dto.id = goal.id;
     dto.name = goal.name;
@@ -96,15 +101,27 @@ export class GoalResponseDto {
     dto.createdAt = goal.createdAt.toISOString();
     const parts = goal.participants ?? [];
     dto.totalSaved = parts.reduce((s, p) => s + Number(p.currentAmount), 0);
-    dto.participants = parts.map((p) =>
-      GoalParticipantResponseDto.fromParticipant(p),
-    );
-    const rawItems = goal.items ?? [];
-    const sorted = [...rawItems].sort((a, b) => {
-      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
-      return a.id.localeCompare(b.id);
-    });
-    dto.items = sorted.map((i) => GoalItemResponseDto.fromEntity(i));
+    dto.participants = includeParticipantProfiles
+      ? parts.map((p) => GoalParticipantResponseDto.fromParticipant(p))
+      : parts.map((p) => {
+          const item = new GoalParticipantResponseDto();
+          item.userId = p.userId;
+          item.email = '';
+          item.firstName = '';
+          item.lastName = '';
+          item.currentAmount = Number(p.currentAmount);
+          return item;
+        });
+    if (includeItems) {
+      const rawItems = goal.items ?? [];
+      const sorted = [...rawItems].sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+        return a.id.localeCompare(b.id);
+      });
+      dto.items = sorted.map((i) => GoalItemResponseDto.fromEntity(i));
+    } else {
+      dto.items = [];
+    }
     return dto;
   }
 }

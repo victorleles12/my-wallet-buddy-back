@@ -89,9 +89,21 @@ export class GetCreditCardDashboardUseCase {
     }
 
     const thisMonthKey = monthKeyFromIso(todayIso);
+    const projectionIndexByMonth = new Map<string, number>();
+    projectionKeys.forEach((mk, idx) => projectionIndexByMonth.set(mk, idx));
+
+    const purchasesByCard = new Map<string, CreditCardPurchaseEntity[]>();
+    for (const p of purchases) {
+      const list = purchasesByCard.get(p.creditCardId);
+      if (list) {
+        list.push(p);
+      } else {
+        purchasesByCard.set(p.creditCardId, [p]);
+      }
+    }
 
     const cardDtos: CreditCardDashboardCardDto[] = cards.map((c) => {
-      const cardPurchases = purchases.filter((p) => p.creditCardId === c.id);
+      const cardPurchases = purchasesByCard.get(c.id) ?? [];
       let outstandingApprox = 0;
       let recurringMonthlyApprox = 0;
       let lastOpen: string | null = null;
@@ -118,12 +130,18 @@ export class GetCreditCardDashboardUseCase {
           const ld = lastDueDateIso(p);
           if (ld && (!lastOpen || ld > lastOpen)) lastOpen = ld;
         }
-
-        for (let i = p.paidInstallments ?? 0; i < (p.installmentsTotal ?? 0); i++) {
-          const due = addMonthsIso(p.firstDueDate, i);
-          if (monthKeyFromIso(due) === thisMonthKey) {
-            dueThisMonth += inst;
-          }
+        const totalInstallments = p.installmentsTotal ?? 0;
+        const paidInstallments = p.paidInstallments ?? 0;
+        const firstDueMonth = monthKeyFromIso(p.firstDueDate);
+        const firstDueIdx = projectionIndexByMonth.get(firstDueMonth);
+        const thisMonthIdx = projectionIndexByMonth.get(thisMonthKey);
+        if (firstDueIdx == null || thisMonthIdx == null) continue;
+        const installmentOffsetInThisMonth = thisMonthIdx - firstDueIdx;
+        if (
+          installmentOffsetInThisMonth >= paidInstallments &&
+          installmentOffsetInThisMonth < totalInstallments
+        ) {
+          dueThisMonth += inst;
         }
       }
 

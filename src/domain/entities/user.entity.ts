@@ -55,6 +55,24 @@ export class UserEntity {
   @Column({ name: 'ad_unlock_until', type: 'timestamptz', nullable: true })
   adUnlockUntil: Date | null;
 
+  /** Último token de compra Play validado (subscrição); único na tabela. */
+  @Column({
+    name: 'google_play_purchase_token',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+    unique: true,
+  })
+  googlePlayPurchaseToken: string | null;
+
+  @Column({
+    name: 'google_play_product_id',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
+  googlePlayProductId: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

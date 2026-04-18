@@ -44,8 +44,12 @@ export class GetCreditCardDashboardUseCase {
     const projectionKeys = upcomingMonthKeys(now, 24);
     const keySet = new Set(projectionKeys);
     const monthTotals = new Map<string, number>();
+    const monthInstallmentTotals = new Map<string, number>();
+    const monthRecurringTotals = new Map<string, number>();
     for (const k of projectionKeys) {
       monthTotals.set(k, 0);
+      monthInstallmentTotals.set(k, 0);
+      monthRecurringTotals.set(k, 0);
     }
 
     let totalOutstandingApprox = 0;
@@ -60,6 +64,10 @@ export class GetCreditCardDashboardUseCase {
         for (const mk of projectionKeys) {
           if (compareMonthKeys(mk, startMk) >= 0) {
             monthTotals.set(mk, (monthTotals.get(mk) ?? 0) + amt);
+            monthRecurringTotals.set(
+              mk,
+              (monthRecurringTotals.get(mk) ?? 0) + amt,
+            );
           }
         }
         continue;
@@ -84,6 +92,10 @@ export class GetCreditCardDashboardUseCase {
         const mk = monthKeyFromIso(due);
         if (keySet.has(mk)) {
           monthTotals.set(mk, (monthTotals.get(mk) ?? 0) + inst);
+          monthInstallmentTotals.set(
+            mk,
+            (monthInstallmentTotals.get(mk) ?? 0) + inst,
+          );
         }
       }
     }
@@ -160,6 +172,10 @@ export class GetCreditCardDashboardUseCase {
       (month) => ({
         month,
         totalDue: Math.round((monthTotals.get(month) ?? 0) * 100) / 100,
+        installmentDue:
+          Math.round((monthInstallmentTotals.get(month) ?? 0) * 100) / 100,
+        recurringDue:
+          Math.round((monthRecurringTotals.get(month) ?? 0) * 100) / 100,
       }),
     );
 

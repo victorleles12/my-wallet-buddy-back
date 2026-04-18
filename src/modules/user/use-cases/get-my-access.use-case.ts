@@ -17,6 +17,10 @@ export class GetMyAccessUseCase {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
+  invalidateForUser(userId: string): void {
+    this.accessCache.delete(userId);
+  }
+
   async execute(userId: string): Promise<UserAccessResponseDto> {
     const cached = this.accessCache.get(userId);
     const now = Date.now();

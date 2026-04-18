@@ -35,6 +35,16 @@ export class CreditCardDashboardMonthDto {
       'Total no mês: parcelas com vencimento naquele mês + assinaturas recorrentes já iniciadas',
   })
   totalDue: number;
+
+  @ApiProperty({
+    description: 'Parcela do mês só em compras parceladas (vencimento naquele mês)',
+  })
+  installmentDue: number;
+
+  @ApiProperty({
+    description: 'Soma dos valores mensais fixos (recorrentes) naquele mês',
+  })
+  recurringDue: number;
 }
 
 export class CreditCardDashboardResponseDto {

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '@/domain/entities/user.entity';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserController } from './api/controller/user.controller';
+import { GooglePlaySubscriptionService } from './services/google-play-subscription.service';
 import { ActivatePremiumUseCase } from './use-cases/activate-premium.use-case';
 import { ClearUserFinancialDataUseCase } from './use-cases/clear-user-financial-data.use-case';
 import { ConfirmSensitiveActionUseCase } from './use-cases/confirm-sensitive-action.use-case';
@@ -15,6 +16,7 @@ import { ListUsersUseCase } from './use-cases/list.users.use-case';
 import { RequestSensitiveActionCodeUseCase } from './use-cases/request-sensitive-action-code.use-case';
 import { UpdateUserStatusUseCase } from './use-cases/update-user-status.use-case';
 import { UpdateUserUseCase } from './use-cases/update.user.use-case';
+import { VerifyPlaySubscriptionUseCase } from './use-cases/verify-play-subscription.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity]), AuthModule],
@@ -28,7 +30,9 @@ import { UpdateUserUseCase } from './use-cases/update.user.use-case';
     DeleteUserUseCase,
     GetMyAccessUseCase,
     GrantAdAccessUseCase,
+    GooglePlaySubscriptionService,
     ActivatePremiumUseCase,
+    VerifyPlaySubscriptionUseCase,
     ClearUserFinancialDataUseCase,
     RequestSensitiveActionCodeUseCase,
     ConfirmSensitiveActionUseCase,

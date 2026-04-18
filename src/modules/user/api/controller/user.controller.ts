@@ -30,6 +30,7 @@ import { GrantAdAccessRequestDto } from '../dto/grant-ad-access.request.dto';
 import { UpdateUserStatusRequestDto } from '../dto/update-user-status.request.dto';
 import { UpdateUserRequestDto } from '../dto/update.user.request.dto';
 import { UserAccessResponseDto } from '../dto/user-access.response.dto';
+import { VerifyPlaySubscriptionRequestDto } from '../dto/verify-play-subscription.request.dto';
 import { UserResponseDto } from '../dto/user.response.dto';
 import { ActivatePremiumUseCase } from '../../use-cases/activate-premium.use-case';
 import { CreateUserUseCase } from '../../use-cases/create.user.use-case';
@@ -40,6 +41,7 @@ import { GrantAdAccessUseCase } from '../../use-cases/grant-ad-access.use-case';
 import { ListUsersUseCase } from '../../use-cases/list.users.use-case';
 import { UpdateUserStatusUseCase } from '../../use-cases/update-user-status.use-case';
 import { UpdateUserUseCase } from '../../use-cases/update.user.use-case';
+import { VerifyPlaySubscriptionUseCase } from '../../use-cases/verify-play-subscription.use-case';
 import { PaginationQueryDto } from '@/common/dto/pagination.query.dto';
 import { ConfirmSensitiveActionDto } from '../dto/confirm-sensitive-action.dto';
 import { MessageResponseDto } from '../dto/message.response.dto';
@@ -64,6 +66,7 @@ export class UserController {
     private readonly getMyAccessUseCase: GetMyAccessUseCase,
     private readonly grantAdAccessUseCase: GrantAdAccessUseCase,
     private readonly activatePremiumUseCase: ActivatePremiumUseCase,
+    private readonly verifyPlaySubscriptionUseCase: VerifyPlaySubscriptionUseCase,
     private readonly requestSensitiveActionCodeUseCase: RequestSensitiveActionCodeUseCase,
     private readonly confirmSensitiveActionUseCase: ConfirmSensitiveActionUseCase,
   ) {}
@@ -115,10 +118,26 @@ export class UserController {
   }
 
   @Patch('me/access/premium')
-  @ApiOperation({ summary: 'Activate premium for current user' })
+  @ApiOperation({
+    summary:
+      'Activate premium for current user (dev / legacy; disable in prod with ALLOW_DIRECT_PREMIUM_ACTIVATION=false)',
+  })
   @ApiOkResponse({ type: UserAccessResponseDto })
   activatePremium(@Req() req: AuthedRequest): Promise<UserAccessResponseDto> {
     return this.activatePremiumUseCase.execute(req.user.userId);
+  }
+
+  @Post('me/access/play-subscription')
+  @ApiOperation({
+    summary:
+      'Verify Google Play subscription purchase token and grant premium (Play Billing)',
+  })
+  @ApiOkResponse({ type: UserAccessResponseDto })
+  verifyPlaySubscription(
+    @Req() req: AuthedRequest,
+    @Body() body: VerifyPlaySubscriptionRequestDto,
+  ): Promise<UserAccessResponseDto> {
+    return this.verifyPlaySubscriptionUseCase.execute(req.user.userId, body);
   }
 
   @Post('me/sensitive-action/request-code')

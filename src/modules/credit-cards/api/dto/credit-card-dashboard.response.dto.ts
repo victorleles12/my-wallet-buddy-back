@@ -37,9 +37,16 @@ export class CreditCardDashboardMonthDto {
   totalDue: number;
 
   @ApiProperty({
-    description: 'Parcela do mês só em compras parceladas (vencimento naquele mês)',
+    description:
+      'Parcela do mês só em compras com 2+ parcelas (vencimento naquele mês)',
   })
   installmentDue: number;
+
+  @ApiProperty({
+    description:
+      'Compras à vista no cartão (1 parcela) com vencimento naquele mês',
+  })
+  singlePaymentDue: number;
 
   @ApiProperty({
     description: 'Soma dos valores mensais fixos (recorrentes) naquele mês',

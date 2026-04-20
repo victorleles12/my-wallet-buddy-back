@@ -13,6 +13,11 @@ export function isRecurringPurchase(p: CreditCardPurchaseEntity): boolean {
   return p.isRecurring === true;
 }
 
+/** Crédito à vista no cartão: valor integral na fatura do mês da primeira data (1 parcela). */
+export function isSinglePaymentPurchase(p: CreditCardPurchaseEntity): boolean {
+  return !isRecurringPurchase(p) && (p.installmentsTotal ?? 0) === 1;
+}
+
 /** Parcela (parcelado) ou valor mensal (recorrente). */
 export function periodAmount(p: CreditCardPurchaseEntity): number {
   if (isRecurringPurchase(p)) {

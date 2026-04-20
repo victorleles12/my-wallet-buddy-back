@@ -22,12 +22,14 @@ import {
 } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { CreateTransactionRequestDto } from '../dto/create-transaction.request.dto';
+import { TransactionCategoriesResponseDto } from '../dto/transaction-categories.response.dto';
 import { TransactionResponseDto } from '../dto/transaction.response.dto';
 import { UpdateTransactionRequestDto } from '../dto/update-transaction.request.dto';
 import { PaginationQueryDto } from '@/common/dto/pagination.query.dto';
 import { CreateTransactionUseCase } from '../../use-cases/create-transaction.use-case';
 import { DeleteTransactionUseCase } from '../../use-cases/delete-transaction.use-case';
 import { GetTransactionByIdUseCase } from '../../use-cases/get-transaction-by-id.use-case';
+import { ListTransactionCategoriesForUserUseCase } from '../../use-cases/list-transaction-categories-for-user.use-case';
 import { ListTransactionsForUserUseCase } from '../../use-cases/list-transactions-for-user.use-case';
 import { UpdateTransactionUseCase } from '../../use-cases/update-transaction.use-case';
 
@@ -41,6 +43,7 @@ export class TransactionsController {
   constructor(
     private readonly createTransactionUseCase: CreateTransactionUseCase,
     private readonly listTransactionsForUserUseCase: ListTransactionsForUserUseCase,
+    private readonly listTransactionCategoriesForUserUseCase: ListTransactionCategoriesForUserUseCase,
     private readonly getTransactionByIdUseCase: GetTransactionByIdUseCase,
     private readonly updateTransactionUseCase: UpdateTransactionUseCase,
     private readonly deleteTransactionUseCase: DeleteTransactionUseCase,
@@ -74,6 +77,16 @@ export class TransactionsController {
       query.limit,
       query.offset,
     );
+  }
+
+  @Get('categories')
+  @ApiOperation({
+    summary:
+      'Distinct category names from your visible transactions (no extra table; same visibility as list)',
+  })
+  @ApiOkResponse({ type: TransactionCategoriesResponseDto })
+  listCategories(@Req() req: AuthedRequest): Promise<TransactionCategoriesResponseDto> {
+    return this.listTransactionCategoriesForUserUseCase.execute(req.user.userId);
   }
 
   @Get(':id')
